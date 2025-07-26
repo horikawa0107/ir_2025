@@ -43,6 +43,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
   flutter_email_sender: ^7.0.0
+  smooth_page_indicator: ^1.2.1
 
 dev_dependencies:
   flutter_test:

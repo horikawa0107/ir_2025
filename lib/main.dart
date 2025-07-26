@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
 
-// Firestore 用
+// Firestore
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+// ページインジケーター
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,10 +23,59 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      home: PoseDetectionPage(),
+      title: 'Pose & Firestore Demo',
+      home: HomePage(),
     );
   }
 }
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final PageController _controller = PageController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: [
+          PageView(
+            controller: _controller,
+            children: const [
+              PoseDetectionPage(),
+              MessagesPage(),
+            ],
+          ),
+          Positioned(
+            bottom: 16,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: SmoothPageIndicator(
+                controller: _controller,
+                count: 2,
+                effect: WormEffect(
+                  dotHeight: 12,
+                  dotWidth: 12,
+                  activeDotColor: Colors.blue,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ----------------------------
+// PoseDetectionPage
+// ----------------------------
 
 class PoseDetectionPage extends StatefulWidget {
   const PoseDetectionPage({super.key});
@@ -72,12 +124,12 @@ class _PoseDetectionPageState extends State<PoseDetectionPage> {
 
   Future<void> _addDataToFirestore() async {
     await firestore.collection('messages').add({
-      'text': 'Hello Firestore!',
+      'text': 'A室：スマホの内職を発見',
       'createdAt': FieldValue.serverTimestamp(),
     });
     print('Document added!');
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('データを送信しました')),
+      const SnackBar(content: Text('データを送信')),
     );
   }
 
@@ -93,7 +145,7 @@ class _PoseDetectionPageState extends State<PoseDetectionPage> {
                 children: [
                   ElevatedButton(
                     onPressed: _pickImage,
-                    child: const Text('Pick Image'),
+                    child: const Text('画像を選択'),
                   ),
                   if (_loadedImage != null)
                     Expanded(
@@ -113,7 +165,7 @@ class _PoseDetectionPageState extends State<PoseDetectionPage> {
               ),
             ),
           ),
-          // 🔽 Firestore 送信ボタンを下部に配置
+          // 下部の Firestore 送信ボタン
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: SizedBox(
@@ -173,5 +225,59 @@ class PosePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant PosePainter oldDelegate) {
     return oldDelegate.image != image || oldDelegate.poses != poses;
+  }
+}
+
+// ----------------------------
+// MessagesPage
+// ----------------------------
+
+class MessagesPage extends StatelessWidget {
+  const MessagesPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('通知ページ')),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: firestore
+            .collection('messages')
+            .orderBy('createdAt', descending: true)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(child: Text('Error loading data'));
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final docs = snapshot.data!.docs;
+
+          if (docs.isEmpty) {
+            return const Center(child: Text('No messages yet'));
+          }
+
+          return ListView.builder(
+            itemCount: docs.length,
+            itemBuilder: (context, index) {
+              final data = docs[index].data() as Map<String, dynamic>;
+              final text = data['text'] ?? 'No text';
+              final timestamp = data['createdAt'] != null
+                  ? (data['createdAt'] as Timestamp).toDate().toString()
+                  : 'No timestamp';
+
+              return ListTile(
+                title: Text(text),
+                subtitle: Text(timestamp),
+              );
+            },
+          );
+        },
+      ),
+    );
   }
 }
