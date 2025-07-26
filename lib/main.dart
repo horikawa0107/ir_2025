@@ -4,7 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
 
-void main() {
+// Firestore 用
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -32,6 +38,8 @@ class _PoseDetectionPageState extends State<PoseDetectionPage> {
   List<Pose>? _poses;
 
   ui.Image? _loadedImage;
+
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
@@ -62,33 +70,61 @@ class _PoseDetectionPageState extends State<PoseDetectionPage> {
     await poseDetector.close();
   }
 
+  Future<void> _addDataToFirestore() async {
+    await firestore.collection('messages').add({
+      'text': 'Hello Firestore!',
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+    print('Document added!');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('データを送信しました')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Pose Detection')),
-      body: Center(
-        child: Column(
-          children: [
-            ElevatedButton(
-              onPressed: _pickImage,
-              child: const Text('Pick Image'),
-            ),
-            if (_loadedImage != null)
-              Expanded(
-                child: FittedBox(
-                  child: SizedBox(
-                    width: _loadedImage!.width.toDouble(),
-                    height: _loadedImage!.height.toDouble(),
-                    child: CustomPaint(
-                      painter: PosePainter(_loadedImage!, _poses),
-                    ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Center(
+              child: Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: _pickImage,
+                    child: const Text('Pick Image'),
                   ),
-                ),
-              )
-            else
-              const Text('No image selected'),
-          ],
-        ),
+                  if (_loadedImage != null)
+                    Expanded(
+                      child: FittedBox(
+                        child: SizedBox(
+                          width: _loadedImage!.width.toDouble(),
+                          height: _loadedImage!.height.toDouble(),
+                          child: CustomPaint(
+                            painter: PosePainter(_loadedImage!, _poses),
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    const Text('No image selected'),
+                ],
+              ),
+            ),
+          ),
+          // 🔽 Firestore 送信ボタンを下部に配置
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _addDataToFirestore,
+                child: const Text('Add to Firestore'),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -111,7 +147,6 @@ class PosePainter extends CustomPainter {
       ..color = Colors.red
       ..style = PaintingStyle.fill;
 
-    // 描画対象のランドマークタイプ（肩〜手首）
     final armLandmarks = {
       PoseLandmarkType.leftShoulder,
       PoseLandmarkType.leftElbow,
