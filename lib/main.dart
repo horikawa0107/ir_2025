@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
 
-// Firestore
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'detector.dart'; // スマホ検知クラス
@@ -134,31 +133,7 @@ class _HomePageState extends State<HomePage> implements DetectorListener {
       }
     }
   }
-  // Future<void> _initializeDetector() async {
-  //   try {
-  //     _detector = Detector(
-  //       modelPath: 'assets/model.tflite',
-  //       labelsPath: 'assets/labels.txt',
-  //       listener: this,
-  //       confidenceThreshold: 0.3,
-  //     );
-  //
-  //     // 初期化完了を待つ
-  //     await Future.delayed(const Duration(seconds: 2));
-  //
-  //     if (mounted) {
-  //       setState(() {
-  //         _statusMessage = '写真を選択してスマホを検出してください';
-  //       });
-  //     }
-  //   } catch (e) {
-  //     if (mounted) {
-  //       setState(() {
-  //         _statusMessage = '初期化エラー: $e';
-  //       });
-  //     }
-  //   }
-  // }
+
 
   /// ギャラリーから画像を選択し検出を実行
   Future<void> _pickFromGallery() async {
@@ -277,66 +252,6 @@ class _HomePageState extends State<HomePage> implements DetectorListener {
     }
   }
 
-  // Widget _buildImageArea() {
-  //   if (_imageFile == null) {
-  //     return Container(
-  //       height: 400,
-  //       decoration: BoxDecoration(
-  //         border: Border.all(color: Colors.grey),
-  //         borderRadius: BorderRadius.circular(8),
-  //       ),
-  //       child: Center(
-  //         child: Column(
-  //           mainAxisAlignment: MainAxisAlignment.center,
-  //           children: [
-  //             Icon(Icons.image, size: 64, color: Colors.grey[400]),
-  //             const SizedBox(height: 16),
-  //             Text(
-  //               '写真がありません',
-  //               style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-  //             ),
-  //           ],
-  //         ),
-  //       ),
-  //     );
-  //   }
-  //
-  //   return Container(
-  //     height: 400,
-  //     decoration: BoxDecoration(
-  //       border: Border.all(color: Colors.grey),
-  //       borderRadius: BorderRadius.circular(8),
-  //     ),
-  //     child: ClipRRect(
-  //       borderRadius: BorderRadius.circular(8),
-  //       child: SizedBox.expand(
-  //         child: Stack(
-  //           fit: StackFit.expand,
-  //           children: [
-  //             Image.file(
-  //               _imageFile!,
-  //               fit: BoxFit.fill, // ← 必ず fill に
-  //             ),
-  //             if (!_isLoading)
-  //               DetectorPreview(
-  //                 detectionList: _detections,
-  //                 poses: _poses,
-  //               ),
-  //             if (_isLoading)
-  //               Container(
-  //                 color: Colors.black26,
-  //                 child: const Center(
-  //                   child: CircularProgressIndicator(
-  //                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-  //                   ),
-  //                 ),
-  //               ),
-  //           ],
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
   Widget _buildImageArea() {
     if (_imageFile == null) {
       return Container(
@@ -450,7 +365,7 @@ class _HomePageState extends State<HomePage> implements DetectorListener {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('📱 スマホ検出アプリ'),
+        title: const Text('📱内職検知アプリ'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         elevation: 2,

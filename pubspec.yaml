@@ -49,6 +49,7 @@ dependencies:
 #  cupertino_icons: ^1.0.6
   flutter_email_sender: ^7.0.0
   smooth_page_indicator: ^1.2.1
+  firebase_messaging: ^15.2.10
 
 dev_dependencies:
   flutter_test:
