@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
 import 'detector.dart';
+import 'dart:io';
+import 'package:uuid/uuid.dart';
 import 'dart:ui' as ui;
 import 'dart:math';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:typed_data';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 
@@ -13,6 +18,7 @@ class DetectorPreview extends StatefulWidget {
   final List<Pose>? poses;
   final double originalImageWidth;
   final double originalImageHeight;
+  final ui.Image file_image;
 
   const DetectorPreview({
     super.key,
@@ -20,6 +26,7 @@ class DetectorPreview extends StatefulWidget {
     this.poses,
     required this.originalImageWidth,
     required this.originalImageHeight,
+    required this.file_image,
   });
 
   @override
@@ -30,14 +37,80 @@ class _DetectorPreviewState extends State<DetectorPreview> {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   bool _proximityDetected = false;
 
-  Future<void> _addDataToFirestore() async {
-    await firestore.collection('messages').add({
-      'text': 'A室：スマホの内職を発見',
-      'createdAt': FieldValue.serverTimestamp(),
-    });
-    print('Document added!');
+  // Future<void> _addDataToFirestore() async {
+  //   await firestore.collection('messages').add({
+  //     'text': 'A室：スマホの内職を発見',
+  //     'createdAt': FieldValue.serverTimestamp(),
+  //   });
+  //   print('Document added!');
+  // }
+
+  Future<void> _sendDetectionAlert() async {
+    final storage = FirebaseStorage.instance;
+    final firestore = FirebaseFirestore.instance;
+
+    try {
+      // 1️⃣ ファイル名を UUID で決める
+      final String uniqueId = const Uuid().v4();
+      final String fileName = "detections/$uniqueId.png";
+
+      // 2️⃣ ui.Image → ByteData → File に変換
+      final byteData = await widget.file_image.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData == null) {
+        print('Failed to convert image to ByteData');
+        return;
+      }
+      final Uint8List pngBytes = byteData.buffer.asUint8List();
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/$uniqueId.png');
+      await file.writeAsBytes(pngBytes);
+
+      // 3️⃣ Storage にアップロード
+      final ref = storage.ref().child(fileName);
+      final uploadTask = await ref.putFile(file);
+
+      // 4️⃣ アップロード後に downloadURL を取得
+      final downloadUrl = await ref.getDownloadURL();
+
+      // 5️⃣ Firestore にメッセージと画像 URL を一緒に保存
+      await firestore.collection('notions').add({
+        'text': 'A室：スマホの内職を発見',
+        'imageUrl': downloadUrl,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      print('Message and image uploaded!');
+    } catch (e) {
+      print('Error during alert send: $e');
+    }
   }
 
+
+  // Future<void> _uploadImageToFirebase() async {
+  //   final FirebaseStorage storage = FirebaseStorage.instance;
+  //
+  //   try {
+  //     // ui.Image を PNG にエンコード
+  //     final ByteData? byteData = await widget.file_image.toByteData(format: ui.ImageByteFormat.png);
+  //     if (byteData == null) {
+  //       print('Failed to convert image to ByteData');
+  //       return;
+  //     }
+  //     final Uint8List pngBytes = byteData.buffer.asUint8List();
+  //
+  //     // 一時ファイルとして保存
+  //     final tempDir = await getTemporaryDirectory();
+  //     final file = File('${tempDir.path}/detected_image.png');
+  //     await file.writeAsBytes(pngBytes);
+  //     // Firebase Storage にアップロード
+  //     final ref = storage.ref().child('detections/${DateTime.now().millisecondsSinceEpoch}.png');
+  //     await ref.putFile(file);
+  //
+  //     print('Image uploaded to Firebase Storage!');
+  //   } catch (e) {
+  //     print('Error uploading image: $e');
+  //   }
+  // }
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
@@ -47,7 +120,7 @@ class _DetectorPreviewState extends State<DetectorPreview> {
         widget.poses,
         widget.originalImageWidth,
         widget.originalImageHeight,
-        _addDataToFirestore,  // 👈 コールバックを渡す
+        _sendDetectionAlert, /// 👈 コールバックを渡す
       ),
     );
   }

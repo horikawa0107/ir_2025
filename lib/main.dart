@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'スマホ検出アプリ',
+      title: '内職検出アプリ',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -122,7 +122,7 @@ class _HomePageState extends State<HomePage> implements DetectorListener {
 
       if (mounted) {
         setState(() {
-          _statusMessage = '写真を選択してスマホを検出してください';
+          _statusMessage = '写真を選択して内職を検出してください';
         });
       }
     } catch (e) {
@@ -195,7 +195,7 @@ class _HomePageState extends State<HomePage> implements DetectorListener {
       if (picked == null) {
         setState(() {
           _isLoading = false;
-          _statusMessage = '写真を選択してスマホを検出してください';
+          _statusMessage = '写真を選択して内職を検出してください';
         });
         return;
       }
@@ -204,7 +204,7 @@ class _HomePageState extends State<HomePage> implements DetectorListener {
       setState(() {
         _imageFile = file;
         _detections = DetectionList(detections: []);
-        _statusMessage = 'スマホを検出中...';
+        _statusMessage = '内職を検出中...';
       });
       await _loadUiImage(file);
 
@@ -244,9 +244,9 @@ class _HomePageState extends State<HomePage> implements DetectorListener {
         _isLoading = false;
 
         if (_detections.isEmpty) {
-          _statusMessage = 'スマホが検出されませんでした';
+          _statusMessage = '画像を解析しました';
         } else {
-          _statusMessage = '${_detections.length}個のスマホを検出しました';
+          _statusMessage = '画像を解析しました';
         }
       });
     }
@@ -302,7 +302,7 @@ class _HomePageState extends State<HomePage> implements DetectorListener {
             // 検出結果のオーバーレイ描画
             if (!_isLoading )
               DetectorPreview(detectionList: _detections,poses: _poses,originalImageWidth: _originalImageWidth!,
-                originalImageHeight: _originalImageHeight! ),
+                  originalImageHeight: _originalImageHeight!,file_image:_uiImage! ),
             // ローディング表示
             if (_isLoading)
               Container(
@@ -508,7 +508,7 @@ class MessagesPage extends StatelessWidget {
       appBar: AppBar(title: const Text('通知ページ')),
       body: StreamBuilder<QuerySnapshot>(
         stream: firestore
-            .collection('messages')
+            .collection('notions') // ← コレクション名を合わせてね
             .orderBy('createdAt', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
@@ -534,8 +534,17 @@ class MessagesPage extends StatelessWidget {
               final timestamp = data['createdAt'] != null
                   ? (data['createdAt'] as Timestamp).toDate().toString()
                   : 'No timestamp';
+              final imageUrl = data['imageUrl'] as String?;
 
               return ListTile(
+                leading: imageUrl != null
+                    ? Image.network(
+                  imageUrl,
+                  width: 120,
+                  height: 120,
+                  fit: BoxFit.contain,
+                )
+                    : const Icon(Icons.image_not_supported),
                 title: Text(text),
                 subtitle: Text(timestamp),
               );
