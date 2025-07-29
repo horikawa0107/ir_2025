@@ -55,9 +55,11 @@ dependencies:
   path_provider: ^2.1.5
   uuid: ^4.5.1
 
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.4
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -67,7 +69,11 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   flutter_email_sender: ^7.0.0
 
-
+flutter_launcher_icons:
+  ios: true
+  android: false
+  image_path: assets/icon/app_icon.png
+  remove_alpha_ios: true
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

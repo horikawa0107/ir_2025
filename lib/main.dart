@@ -349,7 +349,7 @@ class _HomePageState extends State<HomePage> implements DetectorListener {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    '${detection.label} (信頼度: ${(detection.confidence * 100).toStringAsFixed(1)}%)',
+                    detection.label,
                     style: const TextStyle(fontSize: 16),
                   ),
                 ],
@@ -366,7 +366,7 @@ class _HomePageState extends State<HomePage> implements DetectorListener {
     return Scaffold(
       appBar: AppBar(
         title: const Text('📱内職検知アプリ'),
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.deepOrange,
         foregroundColor: Colors.white,
         elevation: 2,
       ),
@@ -379,22 +379,22 @@ class _HomePageState extends State<HomePage> implements DetectorListener {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: Colors.grey[100],
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.shade200),
+                border: Border.all(color: Colors.grey[400]!),
               ),
               child: Row(
                 children: [
                   Icon(
                     _isLoading ? Icons.hourglass_empty : Icons.info,
-                    color: Colors.blue,
+                    color: Colors.grey[700],
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       _statusMessage,
                       style: TextStyle(
-                        color: Colors.blue.shade700,
+                        color: Colors.grey[800],
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -413,6 +413,8 @@ class _HomePageState extends State<HomePage> implements DetectorListener {
                     icon: const Icon(Icons.photo_library),
                     label: const Text('ギャラリーから選択'),
                     style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey[600],
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
@@ -424,6 +426,8 @@ class _HomePageState extends State<HomePage> implements DetectorListener {
                     icon: const Icon(Icons.camera_alt),
                     label: const Text('カメラで撮影'),
                     style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey[600],
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
