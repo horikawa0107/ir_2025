@@ -188,14 +188,11 @@ class _DetectorPreviewPainter extends CustomPainter {
       canvas.drawLine(Offset(rect.right, rect.bottom), Offset(rect.right - cornerLength, rect.bottom), cornerPaint);
       canvas.drawLine(Offset(rect.right, rect.bottom), Offset(rect.right, rect.bottom - cornerLength), cornerPaint);
 
-      // ラベルテキスト
+      // ラベルテキスト（信頼度を削除）
       final labelText = '📱 ${detection.label}';
-      final confidenceText = '${(detection.confidence * 100).toStringAsFixed(1)}%';
       final textSpan = TextSpan(
-        children: [
-          TextSpan(text: '$labelText\n', style: textStyle),
-          TextSpan(text: confidenceText, style: textStyle.copyWith(fontSize: 12.0)),
-        ],
+        text: labelText,
+        style: textStyle,
       );
       final textPainter = TextPainter(
         text: textSpan,
@@ -255,8 +252,10 @@ class _DetectorPreviewPainter extends CustomPainter {
 
       final textPainter = TextPainter(
         textDirection: TextDirection.ltr,
-        textAlign: TextAlign.center,
+        textAlign: TextAlign.left,
       );
+
+      bool proximityDetected = false;
 
       for (final pose in poses!) {
         for (final entry in pose.landmarks.entries) {
@@ -281,30 +280,32 @@ class _DetectorPreviewPainter extends CustomPainter {
               final distance = sqrt(dx * dx + dy * dy);
 
               if (distance < 50) {
-                // 距離が近い場合はテキストを描画
-                final label = '内職発見';
-                final span = TextSpan(
-                  text: label,
-                  style: const TextStyle(
-                    color: Colors.green,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                );
-                textPainter.text = span;
-                textPainter.layout();
+                proximityDetected = true;
                 if (!_called) {
                   _called = true; // 連続で呼ばないようにフラグ
                   onProximityDetected();
                 }
-                textPainter.paint(
-                  canvas,
-                  Offset(scaledX - textPainter.width / 2, scaledY - 20),
-                );
               }
             }
           }
         }
+      }
+
+      // 内職発見を写真の左上に表示
+      if (proximityDetected) {
+        final label = '内職発見';
+        final span = TextSpan(
+          text: label,
+          style: const TextStyle(
+            color: Colors.orangeAccent,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        );
+        textPainter.text = span;
+        textPainter.layout();
+
+        textPainter.paint(canvas, const Offset(10, 10));
       }
     }
     else{
